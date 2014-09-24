@@ -29,10 +29,12 @@ class_list=[]
 
 #THEANO_FLAGS="device=gpu,floatX=float32" python real_time_prediction.py my_dataset_old_small.pkl
 
+print 'Initializing...'
 model = serial.load(data_path + 'my_dataset_old_small.pkl')
 X = model.get_input_space().make_theano_batch()
 Y = model.fprop(X)
 f = function([X], Y)
+my_pca_preprocessor = pickle.load(open(data_path + '/cifar10/pylearn2_gcn_whitened/preprocessor.pkl','rb'))
 
 'make cuda-convnet batches from images in the input dir; start numbering batches from 7'
 
@@ -41,6 +43,7 @@ class ImageClassify:
     NODE_NAME = "image_classification"
 
     def __init__(self):
+        print 'Starting node...'
         self.discardCount = 0
         self.publisher = rospy.Publisher('/image_detect', String, queue_size=10)
         self.bridge = CvBridge()
@@ -63,7 +66,7 @@ class ImageClassify:
 
         # squeeze the image into 32x32 size
         img_resized = cv2.resize(img, (32, 32))
-        cv2.imwrite('/home/william/pylearn2/data/image_classification.png', img_resized)
+        cv2.imwrite(data_path + '/image_classification.png', img_resized)
 
         #cv2.imshow("ImageShow", img_resized)
         #cv2.waitKey(10)
@@ -81,6 +84,7 @@ class ImageClassify:
 
 
 def makeBatch (load_path, save_path, class_list):
+    print 'Packing...'
     data = []
     filenames = []
     file_list = os.listdir(load_path)
@@ -122,8 +126,6 @@ def real_time_prediction():
     xdat = np.transpose(xdat[:,:,:,:],(1,2,3,0))
 
     x = dense_design_matrix.DenseDesignMatrix(topo_view=xdat, axes = ['c', 0, 1, 'b'])
-    my_pca_preprocessor = pickle.load(
-              open(data_path + '/cifar10/pylearn2_gcn_whitened/preprocessor.pkl','rb'))
     x.apply_preprocessor(my_pca_preprocessor, can_fit = False)
     tarr = x.get_topological_view()
     #print tarr

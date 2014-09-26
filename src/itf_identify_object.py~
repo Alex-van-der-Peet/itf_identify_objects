@@ -22,21 +22,19 @@ from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
 
 #import warnings
-data_path='/home/mong/Desktop/Data/'
+data_path='/home/william/pylearn2/data/'
 load_path=data_path
 save_path=data_path + 'cifar10/cifar-10-batches-py/prediction_batch'
 class_list=[]
 
 #THEANO_FLAGS="device=gpu,floatX=float32" python real_time_prediction.py my_dataset_old_small.pkl
 
-
-print "Initializing..."
+print 'Initializing...'
 model = serial.load(data_path + 'my_dataset_old_small.pkl')
 X = model.get_input_space().make_theano_batch()
 Y = model.fprop(X)
 f = function([X], Y)
-my_pca_preprocessor = pickle.load(
-              open(data_path + '/cifar10/pylearn2_gcn_whitened/preprocessor.pkl','rb'))
+my_pca_preprocessor = pickle.load(open(data_path + '/cifar10/pylearn2_gcn_whitened/preprocessor.pkl','rb'))
 
 'make cuda-convnet batches from images in the input dir; start numbering batches from 7'
 
@@ -45,7 +43,7 @@ class ImageClassify:
     NODE_NAME = "image_classification"
 
     def __init__(self):
-	print "Starting ROS..."
+        print 'Starting node...'
         self.discardCount = 0
         self.publisher = rospy.Publisher('/image_detect', String, queue_size=10)
         self.bridge = CvBridge()
@@ -53,7 +51,7 @@ class ImageClassify:
 
     def callback(self, data):
         # discard some frames
-        if self.discardCount < 2:
+        if self.discardCount < 5:
             self.discardCount += 1
             return
 
@@ -68,7 +66,7 @@ class ImageClassify:
 
         # squeeze the image into 32x32 size
         img_resized = cv2.resize(img, (32, 32))
-        cv2.imwrite(data_path + 'image_classification.png', img_resized)
+        cv2.imwrite(data_path + '/image_classification.png', img_resized)
 
         #cv2.imshow("ImageShow", img_resized)
         #cv2.waitKey(10)
